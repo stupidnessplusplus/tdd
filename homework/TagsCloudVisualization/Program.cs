@@ -26,11 +26,11 @@ public static class Program
         string outputPath)
     {
         var layouter = new SpiralCircularCloudLayouter(Point.Empty);
-        var visualizer = new RectanglesVisualizer(1_024, 1_024);
+        var visualizer = new RectanglesVisualizer();
         var rectangles = PutRectanglesFromFile(layouter, inputPath);
 
         visualizer.AddRectangles(rectangles);
-        visualizer.Image.Save(outputPath, ImageFormat.Png);
+        visualizer.GetImage().Save(outputPath, ImageFormat.Png);
     }
 
     private static IEnumerable<Rectangle> PutRectanglesFromFile(
