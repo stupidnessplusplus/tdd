@@ -1,18 +1,33 @@
 using FluentAssertions;
+using NUnit.Framework.Interfaces;
 using System.Drawing;
 using TagsCloud;
+using TagsCloudVisualization;
 
 namespace TagsCloud_Tests;
 
 [TestFixture]
 public class CircularCloudLayouter_PutNextRectangle_Tests
 {
+    private const string FailedTestVisualizationsSavePath = @".\failed_tests";
+
     private ICircularCloudLayouter _layouter;
+    private RectanglesVisualizer _visualization;
+
+    [OneTimeSetUp]
+    public void OneTimeSetUp()
+    {
+        if (!Directory.Exists(FailedTestVisualizationsSavePath))
+        {
+            Directory.CreateDirectory(FailedTestVisualizationsSavePath);
+        }
+    }
 
     [SetUp]
     public void Setup()
     {
         _layouter = new SpiralCircularCloudLayouter(Point.Empty);
+        _visualization = new RectanglesVisualizer();
     }
 
     [TestCase(0, 1)]
@@ -26,7 +41,7 @@ public class CircularCloudLayouter_PutNextRectangle_Tests
     {
         var size = new Size(width, height);
 
-        var putRectangle = () => _layouter.PutNextRectangle(size);
+        var putRectangle = () => PutNextRectangle(size);
 
         putRectangle.Should().Throw<ArgumentOutOfRangeException>();
     }
@@ -44,7 +59,7 @@ public class CircularCloudLayouter_PutNextRectangle_Tests
         var size = new Size(width, height);
         var expectedLocation = new Point(expectedX, expectedY);
 
-        var rectangle = _layouter.PutNextRectangle(size);
+        var rectangle = PutNextRectangle(size);
 
         rectangle.Location.Should().Be(expectedLocation);
         rectangle.Size.Should().Be(size);
@@ -61,7 +76,7 @@ public class CircularCloudLayouter_PutNextRectangle_Tests
         for (var i = 0; i < count; i++)
         {
             var size = new Size(random.Next(2, 100), random.Next(2, 100));
-            var putRectangle = _layouter.PutNextRectangle(size);
+            var putRectangle = PutNextRectangle(size);
             rectangles[i] = putRectangle;
         }
 
@@ -74,5 +89,35 @@ public class CircularCloudLayouter_PutNextRectangle_Tests
                 haveIntersection.Should().BeFalse();
             }
         }
+    }
+
+    [TearDown]
+    public void TearDown()
+    {
+        if (TestContext.CurrentContext.Result.Outcome == ResultState.Failure)
+        {
+            var testName = TestContext.CurrentContext.Test.Name;
+            var fileName = $"{testName}.png";
+            var path = Path.Combine(FailedTestVisualizationsSavePath, fileName);
+
+            try
+            {
+                _visualization.GetImage().Save(path);
+                TestContext.Out.WriteLine($"Tag cloud visualization saved to file '{fileName}'.");
+            }
+            catch (Exception ex)
+            {
+                TestContext.Out.WriteLine($"Unable to save tag cloud visualization for failed test '{testName}'.");
+                TestContext.Out.WriteLine(ex.Message);
+            }
+        }
+    }
+
+    private Rectangle PutNextRectangle(
+        Size rectangleSize)
+    {
+        var rectangle = _layouter.PutNextRectangle(rectangleSize);
+        _visualization.AddRectangle(rectangle);
+        return rectangle;
     }
 }
