@@ -32,7 +32,7 @@ public class RectanglesVisualizer
     {
         if (_rectangles.Count == 0)
         {
-            return new Bitmap(0, 0);
+            return new Bitmap(1, 1);
         }
 
         var minX = _rectangles.Min(rectangle => rectangle.X);
