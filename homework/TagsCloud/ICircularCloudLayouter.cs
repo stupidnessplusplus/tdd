@@ -4,6 +4,5 @@ namespace TagsCloud;
 
 public interface ICircularCloudLayouter
 {
-    public Rectangle PutNextRectangle(
-        Size rectangleSize);
+    public Rectangle PutNextRectangle(Size rectangleSize);
 }

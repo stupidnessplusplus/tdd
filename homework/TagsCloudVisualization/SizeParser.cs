@@ -4,9 +4,7 @@ namespace TagsCloudVisualization;
 
 public class SizeParser
 {
-    public bool TryParse(
-        string str,
-        out Size size)
+    public bool TryParse(string str, out Size size)
     {
         var lineParts = str.Split(' ', StringSplitOptions.RemoveEmptyEntries);
 

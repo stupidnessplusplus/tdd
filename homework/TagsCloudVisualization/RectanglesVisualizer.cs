@@ -13,8 +13,7 @@ public class RectanglesVisualizer
         _rectangles = [];
     }
 
-    public void AddRectangles(
-        IEnumerable<Rectangle> rectangles)
+    public void AddRectangles(IEnumerable<Rectangle> rectangles)
     {
         foreach (var rectangle in rectangles)
         {
@@ -22,8 +21,7 @@ public class RectanglesVisualizer
         }
     }
 
-    public void AddRectangle(
-        Rectangle rectangle)
+    public void AddRectangle(Rectangle rectangle)
     {
         _rectangles.Add(rectangle);
     }
@@ -49,8 +47,7 @@ public class RectanglesVisualizer
         return image;
     }
 
-    private void DrawRectangles(
-        Image image)
+    private void DrawRectangles(Image image)
     {
         var penWidth = 1;
         var imageCenter = new Point(image.Width / 2, image.Height / 2);
@@ -71,10 +68,7 @@ public class RectanglesVisualizer
         return Color.FromArgb(_random.Next(64, 256), _random.Next(64, 256), _random.Next(64, 256));
     }
 
-    private Rectangle GetRectangleForDrawing(
-        Rectangle rectangle,
-        Point newCenter,
-        int penWidth)
+    private Rectangle GetRectangleForDrawing(Rectangle rectangle, Point newCenter, int penWidth)
     {
         var position = new Point(rectangle.X + newCenter.X, rectangle.Y + newCenter.Y);
         var size = rectangle.Size - new Size(penWidth, penWidth);

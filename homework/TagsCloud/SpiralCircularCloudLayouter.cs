@@ -6,21 +6,16 @@ namespace TagsCloud;
 public class SpiralCircularCloudLayouter
     : ICircularCloudLayouter
 {
-    private readonly SortedRectanglesList _rectangles;
-    private readonly List<Rectangle> _rectanglesSpiralStack;
+    private readonly SortedRectanglesList _rectangles = new SortedRectanglesList();
+    private readonly List<Rectangle> _rectanglesSpiralStack = [];
     private readonly Point _center;
 
-    public SpiralCircularCloudLayouter(
-        Point center)
+    public SpiralCircularCloudLayouter(Point center)
     {
-        _rectangles = new SortedRectanglesList();
-        _rectanglesSpiralStack = [];
-
         _center = center;
     }
 
-    public Rectangle PutNextRectangle(
-        Size rectangleSize)
+    public Rectangle PutNextRectangle(Size rectangleSize)
     {
         var rectangle = GetNextRectangle(rectangleSize);
 
@@ -30,8 +25,7 @@ public class SpiralCircularCloudLayouter
         return rectangle;
     }
 
-    private Rectangle GetNextRectangle(
-        Size rectangleSize)
+    private Rectangle GetNextRectangle(Size rectangleSize)
     {
         ArgumentOutOfRangeException.ThrowIfNegativeOrZero(rectangleSize.Width);
         ArgumentOutOfRangeException.ThrowIfNegativeOrZero(rectangleSize.Height);
@@ -64,9 +58,7 @@ public class SpiralCircularCloudLayouter
         throw new Exception("Unable to find a suitable location for the rectangle.");
     }
 
-    private bool TryGetRectangleAttachedToPreviousRectangle(
-        Size rectangleSize,
-        out Rectangle result)
+    private bool TryGetRectangleAttachedToPreviousRectangle(Size rectangleSize, out Rectangle result)
     {
         var (rectangle, direction) = GetInitialRectangleAndRotationDirection(
             rectangleSize, _rectanglesSpiralStack[^1], _rectanglesSpiralStack[^2]);
@@ -120,10 +112,7 @@ public class SpiralCircularCloudLayouter
         };
     }
 
-    private static bool IsTargetOvershot(
-        Point position,
-        Point target,
-        Direction movingDirection)
+    private static bool IsTargetOvershot(Point position, Point target, Direction movingDirection)
     {
         return movingDirection switch
         {
@@ -162,8 +151,7 @@ public class SpiralCircularCloudLayouter
         return new Rectangle(position, rectangleToMove.Size);
     }
 
-    private static Direction RotateCounterclockwise(
-        Direction direction)
+    private static Direction RotateCounterclockwise(Direction direction)
     {
         return direction switch
         {
@@ -215,9 +203,7 @@ public class SpiralCircularCloudLayouter
     /// <summary>
     /// Возвращает прямоугольник с центром в точке center.
     /// </summary>
-    private static Rectangle GetFirstRectangle(
-        Size rectangleSize,
-        Point center)
+    private static Rectangle GetFirstRectangle(Size rectangleSize, Point center)
     {
         var position = center - rectangleSize / 2;
         return new Rectangle(position, rectangleSize);
@@ -226,9 +212,7 @@ public class SpiralCircularCloudLayouter
     /// <summary>
     /// Возвращает прямоугольник, центр которого наиболее близок к центру прямоугольника firstRectangle.
     /// </summary>
-    private static Rectangle GetSecondRectangle(
-        Size rectangleSize,
-        Rectangle firstRectangle)
+    private static Rectangle GetSecondRectangle(Size rectangleSize, Rectangle firstRectangle)
     {
         var center = firstRectangle.Location + firstRectangle.Size / 2;
         var distanceToCenterIfPlacedLeft = rectangleSize.Width + firstRectangle.Width / 2;

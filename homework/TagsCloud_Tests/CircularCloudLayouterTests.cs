@@ -35,9 +35,7 @@ public class CircularCloudLayouterTests
     [TestCase(1, 0)]
     [TestCase(1, -1)]
     [Description("Бросает исключение, если длина или ширина меньше или равны 0")]
-    public void PutNextRectangle_ThrowsException_WhenSizeIsNotPositive(
-        int width,
-        int height)
+    public void PutNextRectangle_ThrowsException_WhenSizeIsNotPositive(int width, int height)
     {
         var size = new Size(width, height);
 
@@ -76,8 +74,8 @@ public class CircularCloudLayouterTests
         for (var i = 0; i < count; i++)
         {
             var size = new Size(random.Next(2, 100), random.Next(2, 100));
-            var putRectangle = PutNextRectangle(size);
-            rectangles[i] = putRectangle;
+            var rectangle = PutNextRectangle(size);
+            rectangles[i] = rectangle;
         }
 
         for (var i = 0; i < count; i++)
@@ -113,8 +111,7 @@ public class CircularCloudLayouterTests
         }
     }
 
-    private Rectangle PutNextRectangle(
-        Size rectangleSize)
+    private Rectangle PutNextRectangle(Size rectangleSize)
     {
         var rectangle = _layouter.PutNextRectangle(rectangleSize);
         _visualization.AddRectangle(rectangle);

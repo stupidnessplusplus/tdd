@@ -21,9 +21,7 @@ public static class Program
         }
     }
 
-    public static void Run(
-        string inputPath,
-        string outputPath)
+    public static void Run(string inputPath, string outputPath)
     {
         var layouter = new SpiralCircularCloudLayouter(Point.Empty);
         var visualizer = new RectanglesVisualizer();
@@ -33,9 +31,7 @@ public static class Program
         visualizer.GetImage().Save(outputPath, ImageFormat.Png);
     }
 
-    private static IEnumerable<Rectangle> PutRectanglesFromFile(
-        ICircularCloudLayouter layouter,
-        string path)
+    private static IEnumerable<Rectangle> PutRectanglesFromFile(ICircularCloudLayouter layouter, string path)
     {
         var sizeParser = new SizeParser();
         var lines = ReadLinesFromFile(path);
@@ -53,8 +49,7 @@ public static class Program
         }
     }
 
-    private static IEnumerable<string> ReadLinesFromFile(
-        string path)
+    private static IEnumerable<string> ReadLinesFromFile(string path)
     {
         using var reader = new StreamReader(path);
 

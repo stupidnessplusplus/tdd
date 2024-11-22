@@ -11,7 +11,13 @@ public class SortedRectanglesList
 {
     private static readonly Dictionary<Direction, Comparer<Rectangle>> _comparers;
 
-    private readonly Dictionary<Direction, List<Rectangle>> _sortedRectangles;
+    private readonly Dictionary<Direction, List<Rectangle>> _sortedRectangles = new(4)
+    {
+        { Direction.Left, [] },
+        { Direction.Right, [] },
+        { Direction.Up, [] },
+        { Direction.Down, [] },
+    };
 
     static SortedRectanglesList()
     {
@@ -29,21 +35,9 @@ public class SortedRectanglesList
         };
     }
 
-    public SortedRectanglesList()
-    {
-        _sortedRectangles = new Dictionary<Direction, List<Rectangle>>(4)
-        {
-            { Direction.Left, [] },
-            { Direction.Right, [] },
-            { Direction.Up, [] },
-            { Direction.Down, [] },
-        };
-    }
-
     public int Count { get; private set; }
 
-    public void Add(
-        Rectangle rectangle)
+    public void Add(Rectangle rectangle)
     {
         Insert(_sortedRectangles[Direction.Left], rectangle, _comparers[Direction.Left]);
         Insert(_sortedRectangles[Direction.Right], rectangle, _comparers[Direction.Right]);
@@ -53,9 +47,7 @@ public class SortedRectanglesList
         Count++;
     }
 
-    public Rectangle Get(
-        Direction sortingDirection,
-        int index)
+    public Rectangle Get(Direction sortingDirection, int index)
     {
         if (!_sortedRectangles.TryGetValue(sortingDirection, out var rectangles))
         {
@@ -99,10 +91,7 @@ public class SortedRectanglesList
         return false;
     }
 
-    private static void Insert(
-        List<Rectangle> rectangles,
-        Rectangle rectangle,
-        Comparer<Rectangle>? comparer)
+    private static void Insert(List<Rectangle> rectangles, Rectangle rectangle, Comparer<Rectangle>? comparer)
     {
         Debug.Assert(rectangles != null);
 
