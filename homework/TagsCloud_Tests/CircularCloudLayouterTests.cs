@@ -78,15 +78,11 @@ public class CircularCloudLayouterTests
             rectangles[i] = rectangle;
         }
 
-        for (var i = 0; i < count; i++)
-        {
-            for (var j = i + 1; j < count; j++)
-            {
-                var haveIntersection = rectangles[i].IntersectsWith(rectangles[j]);
+        var haveIntersection = rectangles
+            .Where((rectangle, i) => rectangles.Take(i).Any(rectangle.IntersectsWith))
+            .Any();
 
-                haveIntersection.Should().BeFalse();
-            }
-        }
+        haveIntersection.Should().BeFalse();
     }
 
     [TearDown]
