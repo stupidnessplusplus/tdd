@@ -8,6 +8,7 @@ public class SpiralCircularCloudLayouter
 {
     private readonly SortedRectanglesList _rectangles;
     private readonly List<Rectangle> _rectanglesSpiralStack;
+    private readonly Point _center;
 
     public SpiralCircularCloudLayouter(
         Point center)
@@ -15,10 +16,8 @@ public class SpiralCircularCloudLayouter
         _rectangles = new SortedRectanglesList();
         _rectanglesSpiralStack = [];
 
-        Center = center;
+        _center = center;
     }
-
-    public Point Center { get; }
 
     public Rectangle PutNextRectangle(
         Size rectangleSize)
@@ -41,7 +40,7 @@ public class SpiralCircularCloudLayouter
         {
             Debug.Assert(_rectangles.Count == 0);
 
-            return GetFirstRectangle(rectangleSize, Center);
+            return GetFirstRectangle(rectangleSize, _center);
         }
 
         if (_rectanglesSpiralStack.Count == 1)
