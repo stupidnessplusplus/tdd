@@ -7,7 +7,7 @@ using TagsCloudVisualization;
 namespace TagsCloud_Tests;
 
 [TestFixture]
-public class CircularCloudLayouter_PutNextRectangle_Tests
+public class CircularCloudLayouterTests
 {
     private const string FailedTestVisualizationsSavePath = @".\failed_tests";
 
