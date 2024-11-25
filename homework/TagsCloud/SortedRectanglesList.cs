@@ -1,4 +1,3 @@
-using System.Diagnostics;
 using System.Drawing;
 
 namespace TagsCloud;
@@ -93,8 +92,6 @@ public class SortedRectanglesList
 
     private static void Insert(List<Rectangle> rectangles, Rectangle rectangle, Comparer<Rectangle>? comparer)
     {
-        Debug.Assert(rectangles != null);
-
         var index = rectangles.BinarySearch(rectangle, comparer);
 
         if (index < 0)

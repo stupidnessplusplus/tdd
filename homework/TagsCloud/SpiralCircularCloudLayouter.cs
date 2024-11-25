@@ -32,16 +32,11 @@ public class SpiralCircularCloudLayouter
 
         if (_rectanglesSpiralStack.Count == 0)
         {
-            Debug.Assert(_rectangles.Count == 0);
-
             return GetFirstRectangle(rectangleSize, _center);
         }
 
         if (_rectanglesSpiralStack.Count == 1)
         {
-            Debug.Assert(_rectangles.Count == 1
-                && _rectangles.Get(Direction.Left, 0) == _rectanglesSpiralStack[0]);
-
             return GetSecondRectangle(rectangleSize, _rectanglesSpiralStack[0]);
         }
 
