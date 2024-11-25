@@ -8,29 +8,18 @@ namespace TagsCloud;
 /// </summary>
 public class SortedRectanglesList
 {
-    private static readonly Dictionary<Direction, Comparer<Rectangle>> _comparers;
+    private readonly Dictionary<Direction, SortedList<int, Rectangle>> _sortedRectangles;
 
-    private readonly Dictionary<Direction, List<Rectangle>> _sortedRectangles = new(4)
+    public SortedRectanglesList()
     {
-        { Direction.Left, [] },
-        { Direction.Right, [] },
-        { Direction.Up, [] },
-        { Direction.Down, [] },
-    };
+        var noEqualityComparer = new NoEqualityComparer<int>();
 
-    static SortedRectanglesList()
-    {
-        var leftComparer = Comparer<Rectangle>.Create((x1, x2) => x1.Left.CompareTo(x2.Left));
-        var rightComparer = Comparer<Rectangle>.Create((x1, x2) => -x1.Right.CompareTo(x2.Right));
-        var topComparer = Comparer<Rectangle>.Create((x1, x2) => x1.Top.CompareTo(x2.Top));
-        var bottomComparer = Comparer<Rectangle>.Create((x1, x2) => -x1.Bottom.CompareTo(x2.Bottom));
-
-        _comparers = new Dictionary<Direction, Comparer<Rectangle>>(4)
+        _sortedRectangles = new Dictionary<Direction, SortedList<int, Rectangle>>(4)
         {
-            { Direction.Left, rightComparer },
-            { Direction.Right, leftComparer },
-            { Direction.Up, bottomComparer },
-            { Direction.Down, topComparer },
+            { Direction.Left, new(noEqualityComparer) },
+            { Direction.Right, new(noEqualityComparer) },
+            { Direction.Up, new(noEqualityComparer) },
+            { Direction.Down, new(noEqualityComparer) },
         };
     }
 
@@ -38,10 +27,10 @@ public class SortedRectanglesList
 
     public void Add(Rectangle rectangle)
     {
-        Insert(_sortedRectangles[Direction.Left], rectangle, _comparers[Direction.Left]);
-        Insert(_sortedRectangles[Direction.Right], rectangle, _comparers[Direction.Right]);
-        Insert(_sortedRectangles[Direction.Up], rectangle, _comparers[Direction.Up]);
-        Insert(_sortedRectangles[Direction.Down], rectangle, _comparers[Direction.Down]);
+        _sortedRectangles[Direction.Left].Add(-rectangle.Left, rectangle);
+        _sortedRectangles[Direction.Right].Add(rectangle.Right, rectangle);
+        _sortedRectangles[Direction.Up].Add(-rectangle.Top, rectangle);
+        _sortedRectangles[Direction.Down].Add(rectangle.Bottom, rectangle);
 
         Count++;
     }
@@ -58,7 +47,7 @@ public class SortedRectanglesList
             throw new IndexOutOfRangeException($"Index was out of range: {index}.");
         }
 
-        return rectangles[index];
+        return rectangles.Values[index];
     }
 
     public bool HasIntersection(
@@ -79,7 +68,7 @@ public class SortedRectanglesList
 
         for (var i = startIndex; i < rectangles.Count; i++)
         {
-            if (rectangle.IntersectsWith(rectangles[i]))
+            if (rectangle.IntersectsWith(rectangles.Values[i]))
             {
                 intersectedRectangleIndex = i;
                 return true;
@@ -88,17 +77,5 @@ public class SortedRectanglesList
 
         intersectedRectangleIndex = -1;
         return false;
-    }
-
-    private static void Insert(List<Rectangle> rectangles, Rectangle rectangle, Comparer<Rectangle>? comparer)
-    {
-        var index = rectangles.BinarySearch(rectangle, comparer);
-
-        if (index < 0)
-        {
-            index = -index - 1;
-        }
-
-        rectangles.Insert(index, rectangle);
     }
 }
