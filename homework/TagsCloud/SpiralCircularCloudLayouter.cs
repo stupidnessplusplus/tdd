@@ -7,7 +7,7 @@ public class SpiralCircularCloudLayouter
     : ICircularCloudLayouter
 {
     private readonly SortedRectanglesList _rectangles = new SortedRectanglesList();
-    private readonly List<Rectangle> _rectanglesSpiralStack = [];
+    private readonly List<(Rectangle Rectangle, Direction DirectionToPrevious)> _rectanglesSpiralStack = [];
     private readonly Point _center;
 
     public SpiralCircularCloudLayouter(Point center)
@@ -17,32 +17,33 @@ public class SpiralCircularCloudLayouter
 
     public Rectangle PutNextRectangle(Size rectangleSize)
     {
-        var rectangle = GetNextRectangle(rectangleSize);
+        var rectangle = GetNextRectangle(rectangleSize, out var direction);
 
         _rectangles.Add(rectangle);
-        _rectanglesSpiralStack.Add(rectangle);
+        _rectanglesSpiralStack.Add((rectangle, direction));
 
         return rectangle;
     }
 
-    private Rectangle GetNextRectangle(Size rectangleSize)
+    private Rectangle GetNextRectangle(Size rectangleSize, out Direction directionToPrevious)
     {
         ArgumentOutOfRangeException.ThrowIfNegativeOrZero(rectangleSize.Width);
         ArgumentOutOfRangeException.ThrowIfNegativeOrZero(rectangleSize.Height);
 
         if (_rectanglesSpiralStack.Count == 0)
         {
+            directionToPrevious = Direction.None;
             return GetFirstRectangle(rectangleSize, _center);
         }
 
         if (_rectanglesSpiralStack.Count == 1)
         {
-            return GetSecondRectangle(rectangleSize, _rectanglesSpiralStack[0]);
+            return GetSecondRectangle(rectangleSize, _rectanglesSpiralStack[0].Rectangle, out directionToPrevious);
         }
 
         while (_rectanglesSpiralStack.Count >= 2)
         {
-            if (TryGetRectangleAttachedToPreviousRectangle(rectangleSize, out var result))
+            if (TryGetRectangleAttachedToPreviousRectangle(rectangleSize, out var result, out directionToPrevious))
             {
                 return result;
             }
@@ -53,10 +54,17 @@ public class SpiralCircularCloudLayouter
         throw new Exception("Unable to find a suitable location for the rectangle.");
     }
 
-    private bool TryGetRectangleAttachedToPreviousRectangle(Size rectangleSize, out Rectangle result)
+    private bool TryGetRectangleAttachedToPreviousRectangle(
+        Size rectangleSize,
+        out Rectangle result,
+        out Direction directionToPrevious)
     {
-        var (rectangle, direction) = GetInitialRectangleAndRotationDirection(
-            rectangleSize, _rectanglesSpiralStack[^1], _rectanglesSpiralStack[^2]);
+        var direction = _rectanglesSpiralStack[^1].DirectionToPrevious;
+        var rectangle = AttachToSide(
+            rectangleSize,
+            _rectanglesSpiralStack[^2].Rectangle.Location,
+            _rectanglesSpiralStack[^1].Rectangle,
+            direction);
 
         // Цикл по сторонам предыдущего прямоугольника
         // 0: первую сторону в первый раз обходит только от изначальной позиции;
@@ -64,13 +72,13 @@ public class SpiralCircularCloudLayouter
         // 4: первую сторону обходит от угла прямоугольника).
         for (var i = 0; i < 5; i++)
         {
-            var target = GetTarget(rectangleSize, _rectanglesSpiralStack[^1], direction);
+            var target = GetTarget(rectangleSize, _rectanglesSpiralStack[^1].Rectangle, direction);
             var hasIntersection = _rectangles.HasIntersection(rectangle, direction, 0, out var j);
             var isTargetOvershot = false;
 
             while (hasIntersection && !isTargetOvershot)
             {
-                rectangle = AttachToSide(rectangle, _rectangles.Get(direction, j), direction);
+                rectangle = AttachToSide(rectangleSize, rectangle.Location, _rectangles.Get(direction, j), direction);
                 hasIntersection = _rectangles.HasIntersection(rectangle, direction, j + 1, out j);
                 isTargetOvershot = IsTargetOvershot(rectangle.Location, target, direction);
             }
@@ -78,14 +86,16 @@ public class SpiralCircularCloudLayouter
             if (!hasIntersection && !isTargetOvershot)
             {
                 result = rectangle;
+                directionToPrevious = DirectionOperations.Revert(direction);
                 return true;
             }
 
             rectangle.Location = target;
-            direction = RotateCounterclockwise(direction);
+            direction = DirectionOperations.RotateCounterclockwise(direction);
         }
 
         result = default;
+        directionToPrevious = Direction.None;
         return false;
     }
 
@@ -124,75 +134,27 @@ public class SpiralCircularCloudLayouter
     /// равный прямоугольнику rectangleToMove, сдвинутому по одной из координат.
     /// </summary>
     private static Rectangle AttachToSide(
-        Rectangle rectangleToMove,
+        Size rectangleSize,
+        Point defaultPosition,
         Rectangle rectangleToAttachTo,
         Direction direction)
     {
         var x = direction switch
         {
-            Direction.Left => rectangleToAttachTo.Left - rectangleToMove.Width,
+            Direction.Left => rectangleToAttachTo.Left - rectangleSize.Width,
             Direction.Right => rectangleToAttachTo.Right,
-            _ => rectangleToMove.X,
+            _ => defaultPosition.X,
         };
 
         var y = direction switch
         {
-            Direction.Up => rectangleToAttachTo.Top - rectangleToMove.Height,
+            Direction.Up => rectangleToAttachTo.Top - rectangleSize.Height,
             Direction.Down => rectangleToAttachTo.Bottom,
-            _ => rectangleToMove.Y,
+            _ => defaultPosition.Y,
         };
 
         var position = new Point(x, y);
-        return new Rectangle(position, rectangleToMove.Size);
-    }
-
-    private static Direction RotateCounterclockwise(Direction direction)
-    {
-        return direction switch
-        {
-            Direction.Left => Direction.Down,
-            Direction.Down => Direction.Right,
-            Direction.Right => Direction.Up,
-            Direction.Up => Direction.Left,
-            _ => direction,
-        };
-    }
-
-    /// <summary>
-    /// Возвращает прямоугольник размера rectangleSize,
-    /// стоящий на границе с previousRectangle с той же стороны, что и prePreviousRectangle,
-    /// и изначальное направление поиска подходящей для него позиции.
-    /// </summary>
-    private static (Rectangle, Direction) GetInitialRectangleAndRotationDirection(
-        Size rectangleSize,
-        Rectangle previousRectangle,
-        Rectangle prePreviousRectangle)
-    {
-        var position = prePreviousRectangle.Location;
-        var direction = Direction.None;
-
-        if (position.X == previousRectangle.Right)
-        {
-            direction = Direction.Up;
-        }
-        else if (position.X < previousRectangle.X)
-        {
-            position.X = previousRectangle.X - rectangleSize.Width;
-            direction = Direction.Down;
-        }
-
-        if (position.Y == previousRectangle.Bottom)
-        {
-            direction = Direction.Right;
-        }
-        else if (position.Y < previousRectangle.Y)
-        {
-            position.Y = previousRectangle.Y - rectangleSize.Height;
-            direction = Direction.Left;
-        }
-
-        var rectangle = new Rectangle(position, rectangleSize);
-        return (rectangle, direction);
+        return new Rectangle(position, rectangleSize);
     }
 
     /// <summary>
@@ -207,16 +169,26 @@ public class SpiralCircularCloudLayouter
     /// <summary>
     /// Возвращает прямоугольник, центр которого наиболее близок к центру прямоугольника firstRectangle.
     /// </summary>
-    private static Rectangle GetSecondRectangle(Size rectangleSize, Rectangle firstRectangle)
+    private static Rectangle GetSecondRectangle(
+        Size rectangleSize,
+        Rectangle firstRectangle,
+        out Direction directionToFirst)
     {
         var center = firstRectangle.Location + firstRectangle.Size / 2;
         var distanceToCenterIfPlacedLeft = rectangleSize.Width + firstRectangle.Width / 2;
         var distanceToCenterIfPlacedUp = rectangleSize.Height + firstRectangle.Height / 2;
 
-        var position = distanceToCenterIfPlacedLeft < distanceToCenterIfPlacedUp
-            ? new Point(center.X - distanceToCenterIfPlacedLeft, center.Y - rectangleSize.Height / 2)
-            : new Point(center.X - rectangleSize.Width / 2, center.Y - distanceToCenterIfPlacedUp);
+        if (distanceToCenterIfPlacedLeft < distanceToCenterIfPlacedUp)
+        {
+            var xLeft = center.X - distanceToCenterIfPlacedLeft;
+            var yLeft = center.Y - rectangleSize.Height / 2;
+            directionToFirst = Direction.Right;
+            return new Rectangle(new Point(xLeft, yLeft), rectangleSize);
+        }
 
-        return new Rectangle(position, rectangleSize);
+        var xUp = center.X - rectangleSize.Width / 2;
+        var yUp = center.Y - distanceToCenterIfPlacedUp;
+        directionToFirst = Direction.Down;
+        return new Rectangle(new Point(xUp, yUp), rectangleSize);
     }
 }
