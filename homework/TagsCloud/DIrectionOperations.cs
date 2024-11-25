@@ -25,4 +25,13 @@ public static class DirectionOperations
             _ => Direction.None,
         };
     }
+
+    public static IEnumerable<Direction> GetDirectionsRotatingCounterclockwise(Direction initialDirection)
+    {
+        while (true)
+        {
+            yield return initialDirection;
+            initialDirection = RotateCounterclockwise(initialDirection);
+        }
+    }
 }

@@ -1,4 +1,3 @@
-using System.Diagnostics;
 using System.Drawing;
 
 namespace TagsCloud;
@@ -59,18 +58,18 @@ public class SpiralCircularCloudLayouter
         out Rectangle result,
         out Direction directionToPrevious)
     {
-        var direction = _rectanglesSpiralStack[^1].DirectionToPrevious;
+        var initialDirection = _rectanglesSpiralStack[^1].DirectionToPrevious;
         var rectangle = AttachToSide(
             rectangleSize,
             _rectanglesSpiralStack[^2].Rectangle.Location,
             _rectanglesSpiralStack[^1].Rectangle,
-            direction);
+            initialDirection);
 
-        // Цикл по сторонам предыдущего прямоугольника
-        // 0: первую сторону в первый раз обходит только от изначальной позиции;
-        // 1-3: 3 другие стороны полностью;
-        // 4: первую сторону обходит от угла прямоугольника).
-        for (var i = 0; i < 5; i++)
+        var directions = DirectionOperations
+            .GetDirectionsRotatingCounterclockwise(initialDirection)
+            .Take(5);
+
+        foreach (var direction in directions)
         {
             var target = GetTarget(rectangleSize, _rectanglesSpiralStack[^1].Rectangle, direction);
             var hasIntersection = _rectangles.HasIntersection(rectangle, direction, 0, out var j);
@@ -91,7 +90,6 @@ public class SpiralCircularCloudLayouter
             }
 
             rectangle.Location = target;
-            direction = DirectionOperations.RotateCounterclockwise(direction);
         }
 
         result = default;
