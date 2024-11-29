@@ -37,7 +37,9 @@ public class SpiralCircularCloudLayouter
 
         if (_rectanglesSpiralStack.Count == 1)
         {
-            return GetSecondRectangle(rectangleSize, _rectanglesSpiralStack[0].Rectangle, out directionToPrevious);
+            var previousRectangle = _rectanglesSpiralStack[0].Rectangle;
+            directionToPrevious = Direction.Down;
+            return AttachToSide(rectangleSize, previousRectangle.Location, previousRectangle, Direction.Up);
         }
 
         while (_rectanglesSpiralStack.Count >= 2)
@@ -162,31 +164,5 @@ public class SpiralCircularCloudLayouter
     {
         var position = center - rectangleSize / 2;
         return new Rectangle(position, rectangleSize);
-    }
-
-    /// <summary>
-    /// Возвращает прямоугольник, центр которого наиболее близок к центру прямоугольника firstRectangle.
-    /// </summary>
-    private static Rectangle GetSecondRectangle(
-        Size rectangleSize,
-        Rectangle firstRectangle,
-        out Direction directionToFirst)
-    {
-        var center = firstRectangle.Location + firstRectangle.Size / 2;
-        var distanceToCenterIfPlacedLeft = rectangleSize.Width + firstRectangle.Width / 2;
-        var distanceToCenterIfPlacedUp = rectangleSize.Height + firstRectangle.Height / 2;
-
-        if (distanceToCenterIfPlacedLeft < distanceToCenterIfPlacedUp)
-        {
-            var xLeft = center.X - distanceToCenterIfPlacedLeft;
-            var yLeft = center.Y - rectangleSize.Height / 2;
-            directionToFirst = Direction.Right;
-            return new Rectangle(new Point(xLeft, yLeft), rectangleSize);
-        }
-
-        var xUp = center.X - rectangleSize.Width / 2;
-        var yUp = center.Y - distanceToCenterIfPlacedUp;
-        directionToFirst = Direction.Down;
-        return new Rectangle(new Point(xUp, yUp), rectangleSize);
     }
 }
